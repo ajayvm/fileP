@@ -1,0 +1,20 @@
+syntax = "proto3";
+package main ;
+// Index,Organization Id,Name,Website,Country,Description,Founded,Industry,Number of employees
+option go_package = "github.com/ajayvm/fileP/main";
+
+message Organization {
+    int32 index =  1; 
+    string org = 2 ; 
+    string name = 3 ; 
+    string website = 4 ; 
+    string country = 5 ; 
+    string description = 6 ; 
+    int32 founded = 7 ; 
+    string industry = 8 ; 
+    int32 noEmp = 9 ;
+}
+
+message OrgList {
+    repeated Organization org = 1 ;
+}
