@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 	"strconv"
 	"time"
 
@@ -19,7 +17,7 @@ func main() {
 
 	kvMap := make(map[string]string)
 
-	for i := 0; i < 1000000; i++ {
+	for i := 0; i < 100000; i++ {
 		iStr := strconv.Itoa(i)
 		kvMap["k"+iStr] = "v" + iStr
 	}
@@ -55,7 +53,10 @@ func main() {
 
 	ts2 := time.Now()
 	readFromDb(db)
-	fmt.Println("time taken file opening ", ts2.Sub(ts1), " time reading a key ", (time.Since(ts2)))
+	ts3 := time.Now()
+	val, _ := readFromDb(db)
+	ts4 := time.Since(ts3)
+	fmt.Println("time taken file opening ", ts2.Sub(ts1), " time reading a key ", ts4, "value is ", val)
 }
 
 func saveToDb(db *bolt.DB, kvMap map[string]string) error {
@@ -80,14 +81,15 @@ func saveToDb(db *bolt.DB, kvMap map[string]string) error {
 	return err
 }
 
-func readFromDb(db *bolt.DB) error {
+func readFromDb(db *bolt.DB) (string, error) {
+	valueInDb := ""
 	err := db.View(func(tx *bolt.Tx) error {
 		orgBucket := tx.Bucket([]byte("OrgBucket"))
-		v := string(orgBucket.Get([]byte("Key")))
-		v2 := string(orgBucket.Get([]byte("k0")))
-		fmt.Println("value is ", v, v2, " other values ", orgBucket.Stats(), " orgB ")
-		json.NewEncoder(os.Stderr).Encode(orgBucket.Stats())
+		// v := string(orgBucket.Get([]byte("Key")))
+		valueInDb = string(orgBucket.Get([]byte("k0")))
+		// fmt.Println("value is ", v, v2, " other values ", orgBucket.Stats(), " orgB ")
+		// json.NewEncoder(os.Stderr).Encode(orgBucket.Stats())
 		return nil
 	})
-	return err
+	return valueInDb, err
 }

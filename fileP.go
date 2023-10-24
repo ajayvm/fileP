@@ -6,8 +6,6 @@ import (
 	"log"
 	"os"
 	"time"
-
-	"github.com/ajayvm/fileP/size"
 )
 
 func main() {
@@ -17,32 +15,46 @@ func main() {
 	stT := time.Now()
 	rec := readCsvFile("organizations-2000000.csv")
 	// rec := readCsvFile("organizations-100.csv")
-	endParse := time.Since(stT)
-	fmt.Println("time to parse ", len(rec), " records with columns ", len(rec[0]), " in  ", endParse)
+	endT := time.Since(stT)
+	fmt.Println("time to parse ", len(rec), " records with columns ", len(rec[0]), " in  ", endT)
+	//,  " size of [][]string ", size.Of(rec))
 
 	stT = time.Now()
 	orgList, err := GetOrgsFromArrPlain(&rec)
 	// orgList, err := GetOrgsFromArr(&rec)
-	endMapTime := time.Since(stT)
-	fmt.Println("time to map ", endMapTime)
+	endT = time.Since(stT)
+	fmt.Println("time to map ", endT)
 	if err != nil {
 		fmt.Println("error in parsing", err)
 	} else {
-		// fmt.Println(len(orgList.Org), "; cap is ; ", cap(orgList.Org))
-		fmt.Println(len(orgList), "; cap is ; ", cap(orgList), ": size ", size.Of(orgList))
+		// fmt.Println(len(orgList.Org), "; cap is ; ", cap(orgList.Org), " size of proto objects ", size.Of(orgList.Org))
+		fmt.Println(len(orgList), "; cap is ; ", cap(orgList)) //, ": size ", size.Of(orgList))
 	}
 
+	// // output as JSon
 	// stT = time.Now()
-	// protoBytes, err := proto.Marshal(&orgList)
+	// b, err := json.Marshal(orgList)
+	// endT = time.Since(stT)
+	// fmt.Println("time to marshal as json - Error", err, " time taken ", endT, " size of bytes ", size.Of(b))
+
+	// // output as protobuf
+	// stT = time.Now()
+	// b, err := proto.Marshal(&orgList)
 	// if err != nil {
 	// 	fmt.Println("error in protobuf marshalling", err)
 	// }
-	// protoTime := time.Since(stT)
-	// fmt.Println(" after proto conversion, time take is ", protoTime.Microseconds(), " and the size is ", len(protoBytes))
+	// endT = time.Since(stT)
+	// fmt.Println(" after proto conversion, time take is ", endT, " and the size is ", len(b), " with verification", size.Of(b))
 
-	// populate into Database
+	// write this to file.
+	// stT = time.Now()
+	// err = os.WriteFile("org.proto", b, 0777)
+	// endT = time.Since(stT)
+	// fmt.Println("time to write file - Error", err, " time taken ", endT)
 
 	// populate into bbolt
+
+	// populate into Database
 
 }
 
