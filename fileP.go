@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -31,6 +32,11 @@ func main() {
 		fmt.Println(len(orgList), "; cap is ; ", cap(orgList)) //, ": size ", size.Of(orgList))
 	}
 
+	indCtryMap := extractIndCtry(orgList)
+	// fmt.Println(indCtryMap)
+	// marshal the maps into JSON
+	b, err := json.Marshal(indCtryMap)
+
 	// // output as JSon
 	// stT = time.Now()
 	// b, err := json.Marshal(orgList)
@@ -48,7 +54,7 @@ func main() {
 
 	// write this to file.
 	// stT = time.Now()
-	// err = os.WriteFile("org.proto", b, 0777)
+	err = os.WriteFile("valLists.json", b, 0777)
 	// endT = time.Since(stT)
 	// fmt.Println("time to write file - Error", err, " time taken ", endT)
 
@@ -56,6 +62,34 @@ func main() {
 
 	// populate into Database
 
+}
+
+func extractIndCtry(orgList []*OrganizationPlain) map[string]map[string]int {
+	indCtryMap := make(map[string]map[string]int)
+	ctryMap := make(map[string]int)
+	indMap := make(map[string]int)
+
+	indCtryMap["Ctry"] = ctryMap
+	indCtryMap["Ind"] = indMap
+
+	for _, org := range orgList {
+		ctry := org.Ctry
+		ind := org.Industry
+
+		addIncInMap(ctry, ctryMap)
+		addIncInMap(ind, indMap)
+	}
+	return indCtryMap
+}
+
+func addIncInMap(key string, actMap map[string]int) {
+	// actMap := *conMap
+	_, present := actMap[key]
+	if present {
+		actMap[key]++
+	} else {
+		actMap[key] = 1
+	}
 }
 
 func readCsvFile(filePath string) [][]string {

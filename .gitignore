@@ -1,7 +1,8 @@
 orgbb.db
-mem.pprof
-cpu.pprof
-organizations-2000000.csv
+*.pprof
+*.csv
 organization.pb.go
 org.proto
-org.json
+*.json
+*.pprof
+trace.out
