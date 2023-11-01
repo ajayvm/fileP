@@ -1,4 +1,4 @@
-orgbb.db
+*.db
 *.pprof
 *.csv
 organization.pb.go

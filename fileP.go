@@ -7,6 +7,8 @@ import (
 	"log"
 	"os"
 	"time"
+
+	"github.com/ajayvm/fileP/size"
 )
 
 func main() {
@@ -21,27 +23,27 @@ func main() {
 	//,  " size of [][]string ", size.Of(rec))
 
 	stT = time.Now()
-	orgList, err := GetOrgsFromArrPlain(&rec)
-	// orgList, err := GetOrgsFromArr(&rec)
+	// orgList, err := GetOrgsFromArrPlain(&rec)
+	orgList, err := GetOrgsFromArr(&rec)
 	endT = time.Since(stT)
 	fmt.Println("time to map ", endT)
 	if err != nil {
 		fmt.Println("error in parsing", err)
 	} else {
-		// fmt.Println(len(orgList.Org), "; cap is ; ", cap(orgList.Org), " size of proto objects ", size.Of(orgList.Org))
-		fmt.Println(len(orgList), "; cap is ; ", cap(orgList)) //, ": size ", size.Of(orgList))
+		fmt.Println(len(orgList.Org), "; cap is ; ", cap(orgList.Org)) // , " size of proto objects ", size.Of(orgList.Org))
+		//fmt.Println(len(orgList), "; cap is ; ", cap(orgList)) //, ": size ", size.Of(orgList))
 	}
 
-	indCtryMap := extractIndCtry(orgList)
+	// indCtryMap := extractIndCtry(orgList)
 	// fmt.Println(indCtryMap)
 	// marshal the maps into JSON
-	b, err := json.Marshal(indCtryMap)
+	// b, err := json.Marshal(indCtryMap)
 
 	// // output as JSon
-	// stT = time.Now()
-	// b, err := json.Marshal(orgList)
-	// endT = time.Since(stT)
-	// fmt.Println("time to marshal as json - Error", err, " time taken ", endT, " size of bytes ", size.Of(b))
+	stT = time.Now()
+	b, err := json.Marshal(orgList)
+	endT = time.Since(stT)
+	fmt.Println("time to marshal as json - Error", err, " time taken ", endT, " size of bytes ", size.Of(b))
 
 	// // output as protobuf
 	// stT = time.Now()
@@ -53,10 +55,11 @@ func main() {
 	// fmt.Println(" after proto conversion, time take is ", endT, " and the size is ", len(b), " with verification", size.Of(b))
 
 	// write this to file.
-	// stT = time.Now()
-	err = os.WriteFile("valLists.json", b, 0777)
-	// endT = time.Since(stT)
-	// fmt.Println("time to write file - Error", err, " time taken ", endT)
+	stT = time.Now()
+	err = os.WriteFile("org2m.json", b, 0777)
+
+	endT = time.Since(stT)
+	fmt.Println("time to write file - Error", err, " time taken ", endT)
 
 	// populate into bbolt
 
