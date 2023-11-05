@@ -6,3 +6,4 @@ org.proto
 *.json
 *.pprof
 trace.out
+*.zip

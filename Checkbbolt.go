@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"sort"
 	"strconv"
 	"time"
 
@@ -17,7 +19,7 @@ func main() {
 
 	kvMap := make(map[string]string)
 
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < 1000000; i++ {
 		iStr := strconv.Itoa(i)
 		kvMap["k"+iStr] = "v" + iStr
 	}
@@ -34,20 +36,24 @@ func main() {
 	ts11 := ts1
 	kvCtr := 0
 	kvChildMap := make(map[string]string)
+	byteSlice := make([][]byte, 0, 10000)
 	for k, v := range kvMap {
 		kvCtr++
 		kvChildMap[k] = v
+		byteSlice = append(byteSlice, []byte(k))
 		if kvCtr%10000 == 0 {
 			ts2 := time.Now()
-			saveToDb(db, kvChildMap)
+			sort.Slice(byteSlice, func(i, j int) bool { return bytes.Compare(byteSlice[i], byteSlice[j]) < 0 })
+			saveToDb(db, kvChildMap, byteSlice)
 			fmt.Println(kvCtr, " took ", ts2.Sub(ts11))
 			ts11 = ts2
 			kvChildMap = make(map[string]string)
+			byteSlice = make([][]byte, 0, 10000)
 		}
 	}
 	// Now save remaining entries if present
 	if len(kvChildMap) > 0 {
-		saveToDb(db, kvChildMap)
+		saveToDb(db, kvChildMap, byteSlice)
 		fmt.Println("save remaining ", len(kvChildMap), " entries ")
 	}
 
@@ -59,7 +65,7 @@ func main() {
 	fmt.Println("time taken file opening ", ts2.Sub(ts1), " time reading a key ", ts4, "value is ", val)
 }
 
-func saveToDb(db *bolt.DB, kvMap map[string]string) error {
+func saveToDb(db *bolt.DB, kvMap map[string]string, byteSlice [][]byte) error {
 	err := db.Update(func(tx *bolt.Tx) error {
 		orgBucket, err := tx.CreateBucketIfNotExists([]byte("OrgBucket"))
 		if err != nil {
@@ -67,8 +73,10 @@ func saveToDb(db *bolt.DB, kvMap map[string]string) error {
 		}
 		//ctr := 0
 		// ts11 := time.Now()
-		for k, v := range kvMap {
-			orgBucket.Put([]byte(k), []byte(v))
+		for _, v := range byteSlice {
+			//for k, v := range kvMap {
+			orgBucket.Put(v, []byte(kvMap[string(v)]))
+			// orgBucket.Put([]byte(k), []byte(v))
 			// ctr++
 			// if ctr%1000 == 0 {
 			// 	ts22 := time.Now()

@@ -2,13 +2,10 @@ package main
 
 import (
 	"encoding/csv"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"time"
-
-	"github.com/ajayvm/fileP/size"
 )
 
 func main() {
@@ -40,10 +37,10 @@ func main() {
 	// b, err := json.Marshal(indCtryMap)
 
 	// // output as JSon
-	stT = time.Now()
-	b, err := json.Marshal(orgList)
-	endT = time.Since(stT)
-	fmt.Println("time to marshal as json - Error", err, " time taken ", endT, " size of bytes ", size.Of(b))
+	// stT = time.Now()
+	// b, err := json.Marshal(orgList)
+	// endT = time.Since(stT)
+	// fmt.Println("time to marshal as json - Error", err, " time taken ", endT, " size of bytes ", size.Of(b))
 
 	// // output as protobuf
 	// stT = time.Now()
@@ -55,16 +52,34 @@ func main() {
 	// fmt.Println(" after proto conversion, time take is ", endT, " and the size is ", len(b), " with verification", size.Of(b))
 
 	// write this to file.
-	stT = time.Now()
-	err = os.WriteFile("org2m.json", b, 0777)
+	// stT = time.Now()
+	// err = os.WriteFile("org2m.json", b, 0777)
 
-	endT = time.Since(stT)
-	fmt.Println("time to write file - Error", err, " time taken ", endT)
+	// endT = time.Since(stT)
+	// fmt.Println("time to write file - Error", err, " time taken ", endT)
 
-	// populate into bbolt
+	// Write only the org ids back to the file as csv. we will do this by creating a [][]string and using encoder
+	// orgIdsSlice := make([][]string, len(orgList.Org))
+	// for i, v := range orgList.Org {
+	// 	orgIdsSlice[i] = make([]string, 1)
+	// 	orgIdsSlice[i][0] = v.Org
+	// }
+	// // fmt.Println(orgIdsSlice)
+	// writeCsv(orgIdsSlice, "OrgIds.csv")
 
-	// populate into Database
+}
 
+func writeCsv(orgIdsSlice [][]string, fileName string) {
+	f, err := os.Create(fileName)
+	if err != nil {
+		log.Fatal("Unable to write file ", err)
+	}
+	defer f.Close()
+	csvWriter := *csv.NewWriter(f)
+	csvWriter.WriteAll(orgIdsSlice)
+	if err := csvWriter.Error(); err != nil {
+		log.Fatalln("error writing csv:", err)
+	}
 }
 
 func extractIndCtry(orgList []*OrganizationPlain) map[string]map[string]int {
