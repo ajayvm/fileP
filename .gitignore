@@ -3,6 +3,7 @@
 *.csv
 organization.pb.go
 org.proto
+org2m.proto
 *.json
 *.pprof
 trace.out

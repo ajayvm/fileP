@@ -6,6 +6,9 @@ import (
 	"log"
 	"os"
 	"time"
+
+	"github.com/ajayvm/fileP/size"
+	"google.golang.org/protobuf/proto"
 )
 
 func main() {
@@ -43,20 +46,20 @@ func main() {
 	// fmt.Println("time to marshal as json - Error", err, " time taken ", endT, " size of bytes ", size.Of(b))
 
 	// // output as protobuf
-	// stT = time.Now()
-	// b, err := proto.Marshal(&orgList)
-	// if err != nil {
-	// 	fmt.Println("error in protobuf marshalling", err)
-	// }
-	// endT = time.Since(stT)
-	// fmt.Println(" after proto conversion, time take is ", endT, " and the size is ", len(b), " with verification", size.Of(b))
+	stT = time.Now()
+	b, err := proto.Marshal(&orgList)
+	if err != nil {
+		fmt.Println("error in protobuf marshalling", err)
+	}
+	endT = time.Since(stT)
+	fmt.Println(" after proto conversion, time take is ", endT, " and the size is ", len(b), " with verification", size.Of(b))
 
 	// write this to file.
-	// stT = time.Now()
-	// err = os.WriteFile("org2m.json", b, 0777)
+	stT = time.Now()
+	err = os.WriteFile("org2m.proto", b, 0777)
 
-	// endT = time.Since(stT)
-	// fmt.Println("time to write file - Error", err, " time taken ", endT)
+	endT = time.Since(stT)
+	fmt.Println("time to write file - Error", err, " time taken ", endT)
 
 	// Write only the org ids back to the file as csv. we will do this by creating a [][]string and using encoder
 	// orgIdsSlice := make([][]string, len(orgList.Org))

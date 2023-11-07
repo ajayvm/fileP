@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"sort"
 	"strconv"
@@ -36,24 +35,32 @@ func main() {
 	ts11 := ts1
 	kvCtr := 0
 	kvChildMap := make(map[string]string)
-	byteSlice := make([][]byte, 0, 10000)
+	// byteSlice := make([][]byte, 0, 10000)
+	stringSlice := make([]string, 0, 10000)
 	for k, v := range kvMap {
 		kvCtr++
 		kvChildMap[k] = v
-		byteSlice = append(byteSlice, []byte(k))
+		// byteSlice = append(byteSlice, []byte(k))
+		stringSlice = append(stringSlice, k)
 		if kvCtr%10000 == 0 {
 			ts2 := time.Now()
-			sort.Slice(byteSlice, func(i, j int) bool { return bytes.Compare(byteSlice[i], byteSlice[j]) < 0 })
-			saveToDb(db, kvChildMap, byteSlice)
+			// sorting the bytes
+			// sort.Slice(byteSlice, func(i, j int) bool { return bytes.Compare(byteSlice[i], byteSlice[j]) < 0 })
+
+			// sorting based on strings
+			sort.Strings(stringSlice)
+
+			saveToDb(db, kvChildMap, stringSlice)
 			fmt.Println(kvCtr, " took ", ts2.Sub(ts11))
 			ts11 = ts2
 			kvChildMap = make(map[string]string)
-			byteSlice = make([][]byte, 0, 10000)
+			// byteSlice = make([][]byte, 0, 10000)
+			stringSlice = make([]string, 0, 10000)
 		}
 	}
 	// Now save remaining entries if present
 	if len(kvChildMap) > 0 {
-		saveToDb(db, kvChildMap, byteSlice)
+		saveToDb(db, kvChildMap, stringSlice)
 		fmt.Println("save remaining ", len(kvChildMap), " entries ")
 	}
 
@@ -65,7 +72,7 @@ func main() {
 	fmt.Println("time taken file opening ", ts2.Sub(ts1), " time reading a key ", ts4, "value is ", val)
 }
 
-func saveToDb(db *bolt.DB, kvMap map[string]string, byteSlice [][]byte) error {
+func saveToDb(db *bolt.DB, kvMap map[string]string, strSlice []string) error {
 	err := db.Update(func(tx *bolt.Tx) error {
 		orgBucket, err := tx.CreateBucketIfNotExists([]byte("OrgBucket"))
 		if err != nil {
@@ -73,9 +80,9 @@ func saveToDb(db *bolt.DB, kvMap map[string]string, byteSlice [][]byte) error {
 		}
 		//ctr := 0
 		// ts11 := time.Now()
-		for _, v := range byteSlice {
+		for _, v := range strSlice {
 			//for k, v := range kvMap {
-			orgBucket.Put(v, []byte(kvMap[string(v)]))
+			orgBucket.Put([]byte(v), []byte(kvMap[v]))
 			// orgBucket.Put([]byte(k), []byte(v))
 			// ctr++
 			// if ctr%1000 == 0 {

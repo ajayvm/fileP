@@ -17,7 +17,7 @@ import (
 // constants
 const jsonFile = "org2m.json" // "org100.json"
 const jsonValFile = "valLists.json"
-const replaceBolt = false
+const replaceBolt = true
 const verifyInBolt = false
 
 func main() {
