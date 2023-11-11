@@ -15,46 +15,52 @@ import (
 
 const useBolt = false
 
+var orgnMap = make(map[string]*Organization)
+
 func main() {
 	orgIds := getOrgsFromCsv()
-	// 10. Now unmarshal all
+	// 10. Now unmarshal all two times to see effect of caching
 	if useBolt {
 		getFromBolt(orgIds)
+		getFromBolt(orgIds)
 	} else {
+		getFromProto(orgIds)
 		getFromProto(orgIds)
 	}
 }
 
 func getFromProto(orgIds []string) {
 	st6 := time.Now()
-	b, err := os.ReadFile("org2m.proto")
-	if err != nil {
-		log.Fatal("Unable to read input file ", err)
+	if len(orgnMap) == 0 {
+		b, err := os.ReadFile("datafiles/org2mMap.proto")
+		if err != nil {
+			log.Fatal("Unable to read input file ", err)
+		}
+		orgMap := OrgMap{}
+		proto.Unmarshal(b, &orgMap)
+		orgnMap = orgMap.OrgM
 	}
-	orgList := OrgList{}
-	proto.Unmarshal(b, &orgList)
 	st7 := time.Now()
 
-	orgMap := make(map[string]*Organization)
-	// convert to maps
-	for _, v := range orgList.Org {
-		orgMap[v.Org] = v
+	// now search for all passed ids and return orgs that match
+	foundCtr := 0
+	notFoundCtr := 0
+
+	for _, v := range orgIds {
+		if _, found := orgnMap[v]; found {
+			foundCtr++
+		} else {
+			notFoundCtr++
+		}
 	}
 	st8 := time.Now()
 
-	// now search for all passed ids and return orgs that match
-	for _, v := range orgIds {
-		if _, found := orgMap[v]; !found {
-			fmt.Println("didnt find id ", v)
-		}
-	}
-	st9 := time.Now()
-
-	fmt.Println("Time to unmarshal ", (st7.Sub(st6)), " time to convert to map ", (st8.Sub(st7)),
-		" time to search passed ", len(orgIds), " ids ", (st9.Sub(st8)))
+	fmt.Println("Time to unmarshal ", (st7.Sub(st6)), " report F NF", foundCtr, notFoundCtr,
+		" time to search passed ", len(orgIds), " ids ", (st8.Sub(st7)))
 }
 
 func getFromBolt(orgIds []string) {
+
 	st6 := time.Now()
 	bytesInDb := getAllObj(orgIds)
 	st7 := time.Now()
@@ -62,6 +68,7 @@ func getFromBolt(orgIds []string) {
 	for _, v := range bytesInDb {
 		orgRec := Organization{}
 		proto.Unmarshal(v, &orgRec)
+
 	}
 	st8 := time.Now()
 
@@ -71,7 +78,7 @@ func getFromBolt(orgIds []string) {
 
 // get all orgs
 func getOrgsFromCsv() []string {
-	f, err := os.Open("OrgIds.csv")
+	f, err := os.Open("datafiles/OrgIds.csv")
 	if err != nil {
 		log.Fatal("Unable to read input file ", err)
 	}

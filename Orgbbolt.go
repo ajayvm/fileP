@@ -12,7 +12,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-const OrgBoltPath = "orgbolt.db"
+const OrgBoltPath = "datafiles/orgbolt.db"
 const OrgBucketName = "OrgBucket"
 const IndIdBucketName = "IndIdBucket"
 const CtryBucketName = "CtryBucket"
@@ -93,9 +93,9 @@ func getAllObj(orgs []string) map[string][]byte {
 	}
 	defer db.Close()
 
-	orgF := make(map[string]int)
-	orgF["Found"] = 0
-	orgF["NotFound"] = 0
+	foundCtr := 0
+	notFoundCtr := 0
+
 	orgBMap := make(map[string][]byte)
 
 	err := db.View(func(tx *bolt.Tx) error {
@@ -103,9 +103,9 @@ func getAllObj(orgs []string) map[string][]byte {
 		for _, org := range orgs {
 			valueInDb := orgBucket.Get([]byte(org))
 			if valueInDb == nil {
-				orgF["NotFound"]++
+				notFoundCtr++
 			} else {
-				orgF["Found"]++
+				foundCtr++
 			}
 			// Remember to copy the bytes if the result is to be used outside
 			bArrCpy := make([]byte, len(valueInDb))
@@ -115,7 +115,7 @@ func getAllObj(orgs []string) map[string][]byte {
 		// json.NewEncoder(os.Stderr).Encode(orgBucket.Stats())
 		return nil
 	})
-	fmt.Println("Found stats for Org ", orgF, ":err ", err)
+	fmt.Println("Found stats for Org Found Not Found", foundCtr, notFoundCtr, ":err ", err)
 	return orgBMap
 }
 

@@ -15,8 +15,8 @@ import (
 // 3 go routines, viz. first on file read, second on processing and third on db save
 
 // constants
-const orgJsonFile = "org2m.json" // "org100.json"
-const jsonValidationFile = "valLists.json"
+const orgJsonFile = "datafiles/org2m.json" // "org100.json"
+const jsonValidationFile = "datafiles/valLists.json"
 const isAsyncPipeline = true
 
 type processInfo struct {
@@ -42,9 +42,9 @@ func main() {
 	json.Unmarshal(bValJson, &ctryIndMap)
 
 	// 1. remove the existing bolt db if required
-	err = os.Remove("orgbolt.db")
+	err = os.Remove("datafiles/orgbolt.db")
 	if err != nil {
-		panic(err)
+		fmt.Println("couldnt remove earlier bolt, ", err)
 	}
 	saveCtryInds(ctryIndMap)
 	st1 := time.Now()

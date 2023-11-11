@@ -2,13 +2,11 @@ package main
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"time"
-
-	"github.com/ajayvm/fileP/size"
-	"google.golang.org/protobuf/proto"
 )
 
 func main() {
@@ -25,8 +23,11 @@ func main() {
 	stT = time.Now()
 	// orgList, err := GetOrgsFromArrPlain(&rec)
 	orgList, err := GetOrgsFromArr(&rec)
-	endT = time.Since(stT)
-	fmt.Println("time to map ", endT)
+	// st2 := time.Now()
+	// orgMap, err := GetOrgsMapFromArr(&rec)
+	// st3 := time.Now()
+	// fmt.Println("time to map to list and maps are ", st2.Sub(stT), st3.Sub(stT))
+
 	if err != nil {
 		fmt.Println("error in parsing", err)
 	} else {
@@ -34,32 +35,40 @@ func main() {
 		//fmt.Println(len(orgList), "; cap is ; ", cap(orgList)) //, ": size ", size.Of(orgList))
 	}
 
-	// indCtryMap := extractIndCtry(orgList)
+	indCtryMap := extractIndCtry(orgList.Org)
 	// fmt.Println(indCtryMap)
 	// marshal the maps into JSON
-	// b, err := json.Marshal(indCtryMap)
+	b, err := json.Marshal(indCtryMap)
+	err = os.WriteFile("datafiles/valLists.json", b, 0777)
 
 	// // output as JSon
-	// stT = time.Now()
-	// b, err := json.Marshal(orgList)
-	// endT = time.Since(stT)
-	// fmt.Println("time to marshal as json - Error", err, " time taken ", endT, " size of bytes ", size.Of(b))
+	stT = time.Now()
+	b, err = json.Marshal(&orgList)
+	endT = time.Since(stT)
+	fmt.Println("time to marshal as json - Error", err, " time taken ", endT) // , " size of bytes ", size.Of(b))
+	err = os.WriteFile("datafiles/org2m.json", b, 0777)
 
 	// // output as protobuf
-	stT = time.Now()
-	b, err := proto.Marshal(&orgList)
-	if err != nil {
-		fmt.Println("error in protobuf marshalling", err)
-	}
-	endT = time.Since(stT)
-	fmt.Println(" after proto conversion, time take is ", endT, " and the size is ", len(b), " with verification", size.Of(b))
+	// stT = time.Now()
+	// b, err := proto.Marshal(&orgList)
+	// if err != nil {
+	// 	fmt.Println("error in protobuf marshalling", err)
+	// }
+	// endT = time.Since(stT)
+	// fmt.Println(" after proto conversion, time take is ", endT, " and the size is ", len(b), " with verification", size.Of(b))
 
-	// write this to file.
-	stT = time.Now()
-	err = os.WriteFile("org2m.proto", b, 0777)
+	// b2, err := proto.Marshal(&orgMap)
+	// if err != nil {
+	// 	fmt.Println("error in protobuf marshalling", err)
+	// }
 
-	endT = time.Since(stT)
-	fmt.Println("time to write file - Error", err, " time taken ", endT)
+	// // write this to file.
+	// stT = time.Now()
+	// err = os.WriteFile("datafiles/org2mList.proto", b, 0777)
+	// endT = time.Since(stT)
+	// fmt.Println("Writing bytes file - Error", err, " time taken ", endT)
+	// err = os.WriteFile("datafiles/org2mMap.proto", b2, 0777)
+	// fmt.Println("Writing bytes 2 file - Error", err)
 
 	// Write only the org ids back to the file as csv. we will do this by creating a [][]string and using encoder
 	// orgIdsSlice := make([][]string, len(orgList.Org))
@@ -68,7 +77,7 @@ func main() {
 	// 	orgIdsSlice[i][0] = v.Org
 	// }
 	// // fmt.Println(orgIdsSlice)
-	// writeCsv(orgIdsSlice, "OrgIds.csv")
+	// writeCsv(orgIdsSlice, "datafiles/OrgIds.csv")
 
 }
 
@@ -85,7 +94,7 @@ func writeCsv(orgIdsSlice [][]string, fileName string) {
 	}
 }
 
-func extractIndCtry(orgList []*OrganizationPlain) map[string]map[string]int {
+func extractIndCtry(orgList []*Organization) map[string]map[string]int {
 	indCtryMap := make(map[string]map[string]int)
 	ctryMap := make(map[string]int)
 	indMap := make(map[string]int)
@@ -94,7 +103,7 @@ func extractIndCtry(orgList []*OrganizationPlain) map[string]map[string]int {
 	indCtryMap["Ind"] = indMap
 
 	for _, org := range orgList {
-		ctry := org.Ctry
+		ctry := org.Country
 		ind := org.Industry
 
 		addIncInMap(ctry, ctryMap)
@@ -144,6 +153,23 @@ func GetOrgsFromArr(recArrPtr *[][]string) (OrgList, error) {
 		//orgList = append(orgList, org)
 	}
 	ol := OrgList{Org: orgList}
+	return ol, nil
+}
+
+func GetOrgsMapFromArr(recArrPtr *[][]string) (OrgMap, error) {
+
+	recArr := *recArrPtr
+	orgsMap := make(map[string]*Organization, len(recArr)-1)
+
+	for i := 1; i < len(recArr); i++ {
+		orgArr := recArr[i]
+		org, err := ParseOrgFromRec(&orgArr)
+		if err != nil {
+			return OrgMap{}, err
+		}
+		orgsMap[org.Org] = org
+	}
+	ol := OrgMap{OrgM: orgsMap}
 	return ol, nil
 }
 

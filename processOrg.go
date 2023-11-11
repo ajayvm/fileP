@@ -15,8 +15,8 @@ import (
 // 3. (separate golang file) parse each JSON --> Stream process of validation, proto conversion and saving to bolt
 
 // constants
-const jsonFile = "org2m.json" // "org100.json"
-const jsonValFile = "valLists.json"
+const jsonFile = "datafiles/org2m.json" // "datafiles/org100.json"
+const jsonValFile = "datafiles/valLists.json"
 const replaceBolt = true
 const verifyInBolt = false
 
@@ -35,9 +35,9 @@ func main() {
 	tStart := time.Now()
 	// 2. remove bolt db if write mode
 	if replaceBolt {
-		err := os.Remove("orgbolt.db")
+		err := os.Remove("datafiles/orgbolt.db")
 		if err != nil {
-			panic(err)
+			fmt.Println("couldnt remove earlier bolt, ", err)
 		}
 	}
 	tDel := time.Now()
@@ -129,31 +129,29 @@ func verifyLocal(orgs []*Organization, ctryIndMap map[string]map[string]int) {
 }
 
 func verifyCtryPresent(orgs []*Organization, idMap map[string]int) {
-	orgF := make(map[string]int)
-	orgF["Found"] = 0
-	orgF["NotFound"] = 0
+	foundCtr := 0
+	notFoundCtr := 0
 	for _, org := range orgs {
 		_, valueInDb := idMap[org.Country]
 		if valueInDb {
-			orgF["Found"]++
+			foundCtr++
 		} else {
-			orgF["NotFound"]++
+			notFoundCtr++
 		}
 	}
-	fmt.Println("Found Country present stats", orgF)
+	fmt.Println("Found Country present stats F NF", foundCtr, notFoundCtr)
 }
 
 func verifyIndPresent(orgs []*Organization, idMap map[string]int) {
-	orgF := make(map[string]int)
-	orgF["Found"] = 0
-	orgF["NotFound"] = 0
+	foundCtr := 0
+	notFoundCtr := 0
 	for _, org := range orgs {
 		_, valueInDb := idMap[org.Industry]
 		if valueInDb {
-			orgF["Found"]++
+			foundCtr++
 		} else {
-			orgF["NotFound"]++
+			notFoundCtr++
 		}
 	}
-	fmt.Println("Found Country present stats", orgF)
+	fmt.Println("Found Country present stats F NF", foundCtr, notFoundCtr)
 }

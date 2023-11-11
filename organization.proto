@@ -18,3 +18,7 @@ message Organization {
 message OrgList {
     repeated Organization org = 1 ;
 }
+
+message OrgMap {
+    map<string, Organization> orgM = 1 ;
+}
