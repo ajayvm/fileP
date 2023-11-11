@@ -14,6 +14,7 @@ import (
 // it will help to assess the memory and processing overheads of proto and the bolt serialization
 
 const useBolt = false
+const useMap = false
 
 var orgnMap = make(map[string]*Organization)
 
@@ -31,14 +32,10 @@ func main() {
 
 func getFromProto(orgIds []string) {
 	st6 := time.Now()
-	if len(orgnMap) == 0 {
-		b, err := os.ReadFile("datafiles/org2mMap.proto")
-		if err != nil {
-			log.Fatal("Unable to read input file ", err)
-		}
-		orgMap := OrgMap{}
-		proto.Unmarshal(b, &orgMap)
-		orgnMap = orgMap.OrgM
+	if useMap {
+		loadProtoFromMap()
+	} else {
+		loadProtoFromList()
 	}
 	st7 := time.Now()
 
@@ -55,8 +52,39 @@ func getFromProto(orgIds []string) {
 	}
 	st8 := time.Now()
 
-	fmt.Println("Time to unmarshal ", (st7.Sub(st6)), " report F NF", foundCtr, notFoundCtr,
-		" time to search passed ", len(orgIds), " ids ", (st8.Sub(st7)))
+	fmt.Println("use Slice not Map:", useMap, "Time to unmarshal ", (st7.Sub(st6)),
+		" report F NF", foundCtr, notFoundCtr,
+		" time to search ", len(orgIds), " ids ", (st8.Sub(st7)))
+}
+
+func loadProtoFromMap() {
+	if len(orgnMap) == 0 {
+		b, err := os.ReadFile("datafiles/org2mMap.proto")
+		if err != nil {
+			log.Fatal("Unable to read input file ", err)
+		}
+		orgMap := OrgMap{}
+		proto.Unmarshal(b, &orgMap)
+		orgnMap = orgMap.OrgM
+	}
+}
+
+func loadProtoFromList() {
+	if len(orgnMap) == 0 {
+		b, err := os.ReadFile("datafiles/org2mList.proto")
+		if err != nil {
+			log.Fatal("Unable to read input file ", err)
+		}
+		orgList := OrgList{}
+		proto.Unmarshal(b, &orgList)
+
+		orgMap := make(map[string]*Organization)
+		// convert to maps
+		for _, v := range orgList.Org {
+			orgMap[v.Org] = v
+		}
+		orgnMap = orgMap
+	}
 }
 
 func getFromBolt(orgIds []string) {
