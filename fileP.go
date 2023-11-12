@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/csv"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -22,31 +21,37 @@ func main() {
 
 	stT = time.Now()
 	// orgList, err := GetOrgsFromArrPlain(&rec)
-	orgList, err := GetOrgsFromArr(&rec)
-	// st2 := time.Now()
+	// orgList, err := GetOrgsFromArr(&rec)
+	orgColl, err := GetOrgsFromArrSharded(&rec)
+
+	st2 := time.Now()
 	// orgMap, err := GetOrgsMapFromArr(&rec)
 	// st3 := time.Now()
 	// fmt.Println("time to map to list and maps are ", st2.Sub(stT), st3.Sub(stT))
 
 	if err != nil {
 		fmt.Println("error in parsing", err)
-	} else {
-		fmt.Println(len(orgList.Org), "; cap is ; ", cap(orgList.Org)) // , " size of proto objects ", size.Of(orgList.Org))
-		//fmt.Println(len(orgList), "; cap is ; ", cap(orgList)) //, ": size ", size.Of(orgList))
 	}
+	fmt.Println("Converting to sharded structure time taken ", (st2.Sub(stT)))
 
-	indCtryMap := extractIndCtry(orgList.Org)
+	stT = time.Now()
+	err = orgColl.saveOrgColl("datafiles/op")
+	st2 = time.Now()
+	fmt.Println("Error was", err, "\nWritten all files ", len(orgColl), " time taken ", (st2.Sub(stT)))
+
+	// Extract and save the validation countries
+	// indCtryMap := extractIndCtry(orgList.Org)
 	// fmt.Println(indCtryMap)
 	// marshal the maps into JSON
-	b, err := json.Marshal(indCtryMap)
-	err = os.WriteFile("datafiles/valLists.json", b, 0777)
+	// b, err := json.Marshal(indCtryMap)
+	// err = os.WriteFile("datafiles/valLists.json", b, 0777)
 
 	// // output as JSon
-	stT = time.Now()
-	b, err = json.Marshal(&orgList)
-	endT = time.Since(stT)
-	fmt.Println("time to marshal as json - Error", err, " time taken ", endT) // , " size of bytes ", size.Of(b))
-	err = os.WriteFile("datafiles/org2m.json", b, 0777)
+	// stT = time.Now()
+	// b, err = json.Marshal(&orgList)
+	// endT = time.Since(stT)
+	// fmt.Println("time to marshal as json - Error", err, " time taken ", endT) // , " size of bytes ", size.Of(b))
+	// err = os.WriteFile("datafiles/org2m.json", b, 0777)
 
 	// // output as protobuf
 	// stT = time.Now()
@@ -156,6 +161,23 @@ func GetOrgsFromArr(recArrPtr *[][]string) (OrgList, error) {
 	return ol, nil
 }
 
+func GetOrgsFromArrSharded(recArrPtr *[][]string) (*WriteShardedOrgColl, error) {
+
+	recArr := *recArrPtr
+	var oCol WriteShardedOrgColl
+	orgColl := &oCol
+
+	for i := 1; i < len(recArr); i++ {
+		orgArr := recArr[i]
+		org, err := ParseOrgFromRec(&orgArr)
+		if err != nil {
+			return orgColl, err
+		}
+		orgColl = orgColl.addOrg(org)
+	}
+	return orgColl, nil
+}
+
 func GetOrgsMapFromArr(recArrPtr *[][]string) (OrgMap, error) {
 
 	recArr := *recArrPtr
@@ -188,6 +210,9 @@ func GetOrgsFromArrPlain(recArrPtr *[][]string) ([]*OrganizationPlain, error) {
 	}
 	return orgList, nil
 }
+
+// Dont use this function as compresses in converting to gob
+// use the function in the size package instead.
 
 // func GetRealSizeOf(orgList []*OrganizationPlain) int {
 // 	b := new(bytes.Buffer)

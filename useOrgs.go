@@ -13,26 +13,53 @@ import (
 // this class is to get all organizations and unmarshal them for proto
 // it will help to assess the memory and processing overheads of proto and the bolt serialization
 
-const useBolt = false
-const useMap = false
+const mechGet = 4 // 1 - bolt , 2 - from big map, 3 - from big list, 4 - from sharded list
 
 var orgnMap = make(map[string]*Organization)
 
 func main() {
 	orgIds := getOrgsFromCsv()
 	// 10. Now unmarshal all two times to see effect of caching
-	if useBolt {
+	if mechGet == 1 { // from Bolt
 		getFromBolt(orgIds)
 		getFromBolt(orgIds)
-	} else {
+	} else if mechGet == 2 || mechGet == 3 { // full map or List
 		getFromProto(orgIds)
 		getFromProto(orgIds)
+	} else if mechGet == 4 { // sharded list
+
+		var oMap ReadShardedOrgMap
+		orgShardedMap := &oMap
+		orgShardedMap = orgShardedMap.InitSMap()
+		getFromShardedProto(orgShardedMap, orgIds)
+		getFromShardedProto(orgShardedMap, orgIds)
 	}
+}
+
+func getFromShardedProto(orgShardedMap *ReadShardedOrgMap, orgIds []string) {
+	st6 := time.Now()
+	// now search for all passed ids and return orgs that match
+	foundCtr := 0
+	notFoundCtr := 0
+
+	for _, v := range orgIds {
+		_, found, _ := orgShardedMap.getOrg(v)
+		if found {
+			foundCtr++
+		} else {
+			notFoundCtr++
+		}
+	}
+	st7 := time.Now()
+
+	fmt.Println("Mechanism:", mechGet, "Time to search ", (st7.Sub(st6)),
+		" report F NF", foundCtr, notFoundCtr,
+		" for records  ", len(orgIds))
 }
 
 func getFromProto(orgIds []string) {
 	st6 := time.Now()
-	if useMap {
+	if mechGet == 2 {
 		loadProtoFromMap()
 	} else {
 		loadProtoFromList()
@@ -52,7 +79,7 @@ func getFromProto(orgIds []string) {
 	}
 	st8 := time.Now()
 
-	fmt.Println("use Slice not Map:", useMap, "Time to unmarshal ", (st7.Sub(st6)),
+	fmt.Println("Mechanism:", mechGet, "Time to unmarshal ", (st7.Sub(st6)),
 		" report F NF", foundCtr, notFoundCtr,
 		" time to search ", len(orgIds), " ids ", (st8.Sub(st7)))
 }
