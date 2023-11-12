@@ -17,8 +17,7 @@ in terms of bolt, current the program just saves 1 million key value pairs to bo
 main file is fileP.go. this has many sub function areas from reading CSV to saving validation lists and various json, protobufs. Uncomment various sections to check various functions 
 
 * reading CSV, converting to proto / golang struct and then converting to proto / JSON and saving the json 
-* go run fileP.go .\orgMapping.go .\organization.pb.go 
-
+* go run fileP.go orgMapping.go organization.pb.go ShardedOrgStore.go
 
 ## Phase 3 - Main runs to parse JSon files to go struct, validate and save to Bolt and then load them all 
 
