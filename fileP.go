@@ -28,10 +28,11 @@ func main() {
 	st2 := time.Now()
 
 	orgList, err := GetOrgsFromArr(&rec)
+	st2a := time.Now()
 	orgMap, err := GetOrgsMapFromArr(&rec)
 	st3 := time.Now()
 	fmt.Println("2. Converting to sharded structure time taken ", (st2.Sub(stT)))
-	fmt.Println("3. time to map to list and maps are ", st3.Sub(st2))
+	fmt.Println("3. time to map to list and maps are ", st2a.Sub(st2), st3.Sub(st2a))
 
 	// saving the sharded Maps
 	stT = time.Now()
