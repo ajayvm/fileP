@@ -4,3 +4,4 @@ organization.pb.go
 trace.out
 *.zip
 datafiles
+.DS_Store

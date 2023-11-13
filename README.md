@@ -47,7 +47,7 @@ Current work stopped at profiling of the memory and CPU utilization
 * go run processFromCSV.go orgMapping.go organization.pb.go ShardedOrgStore.go
 
 * Saving from Json to object to sharded protobuf on disk
-* go run .\saveShardOrgFJson.go .\ShardedOrgStore.go .\organization.pb.go
+* go run saveShardOrgFJson.go ShardedOrgStore.go organization.pb.go
 
 * Checking through the useOrgs for validity. Use mechanism 4 (sharded Map)
 * go run useOrgs.go orgMapping.go organization.pb.go Orgbbolt.go   ShardedOrgStore.go

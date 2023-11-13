@@ -52,7 +52,10 @@ func main() {
 	b, err = json.Marshal(orgList)
 	endT = time.Since(stT)
 	fmt.Println("6. time to marshal as json - Error", err, " time taken ", endT) // , " size of bytes ", size.Of(b))
+	stT = time.Now()
 	err = os.WriteFile("datafiles/org2m.json", b, 0777)
+	endT = time.Since(stT)
+	fmt.Println("6b. time to write json to file - Error", err, " time taken ", endT)
 
 	// output as protobuf
 	stT = time.Now()
