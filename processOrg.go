@@ -101,22 +101,6 @@ func main() {
 		"\n time in saving ", (st5.Sub(st4)), " time in verification", (st6.Sub(st5)),
 		"\n Total time to parse, write, verify ", (st6.Sub(tDel)))
 
-	// 9. Bolt get all elements test
-	orgIds := make([]string, len(orgList.Org))
-	for i, v := range orgList.Org {
-		orgIds[i] = v.Org
-	}
-	bytesInDb := getAllObj(orgIds)
-	st7 := time.Now()
-
-	// 10. Now unmarshal all
-	for _, v := range bytesInDb {
-		orgRec := Organization{}
-		proto.Unmarshal(v, &orgRec)
-	}
-	st8 := time.Now()
-
-	fmt.Println("time to get ", len(bytesInDb), " Orgs ", (st7.Sub(st6)), " time to unmarshall them ", (st8.Sub(st7)))
 }
 
 func verifyLocal(orgs []*Organization, ctryIndMap map[string]map[string]int) {

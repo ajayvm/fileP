@@ -32,7 +32,7 @@ set the flags replace bolt and validate in bolt to true or false respective
 set the async processing flag to true if channel implementation required. 
 
 * for only getting all values from the bolt given ids. 3 mechanisms are bolt, large slice, large map (1,2,3)
-* go run useOrgs.go orgMapping.go organization.pb.go Orgbbolt.go   
+* go run useOrgs.go orgMapping.go organization.pb.go Orgbbolt.go  ShardedOrgStore.go 
 
 Current work stopped at profiling of the memory and CPU utilization 
 
@@ -43,7 +43,10 @@ Current work stopped at profiling of the memory and CPU utilization
 * Saving through fileP where directly a csv is converted to proto 
 * go run fileP.go orgMapping.go organization.pb.go ShardedOrgStore.go 
 
-* Saving from Json to object to proto buf 
+* Saving from csv to object to protobuf on disk 
+* go run processFromCSV.go orgMapping.go organization.pb.go ShardedOrgStore.go
+
+* Saving from Json to object to sharded protobuf on disk
 * go run .\saveShardOrgFJson.go .\ShardedOrgStore.go .\organization.pb.go
 
 * Checking through the useOrgs for validity. Use mechanism 4 (sharded Map)

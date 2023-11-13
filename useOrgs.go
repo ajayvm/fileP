@@ -5,26 +5,42 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"time"
 
+	bolt "go.etcd.io/bbolt"
 	"google.golang.org/protobuf/proto"
 )
 
 // this class is to get all organizations and unmarshal them for proto
 // it will help to assess the memory and processing overheads of proto and the bolt serialization
 
-const mechGet = 4 // 1 - bolt , 2 - from big map, 3 - from big list, 4 - from sharded list
+const mechGet = 3 // 1 - bolt , 2 - from big map, 3 - from big list, 4 - from sharded list
 
+// shift below to the inside methods
 var orgnMap = make(map[string]*Organization)
 
 func main() {
 	orgIds := getOrgsFromCsv()
-	// 10. Now unmarshal all two times to see effect of caching
+	// we are determining memory allocations at 3 times, viz. Start, first pass and end of pass
+	var startMemory runtime.MemStats
+	var midMemory runtime.MemStats
+	var endMemory runtime.MemStats
+
+	runtime.ReadMemStats(&startMemory)
+
+	// Now unmarshal all two times to see effect of caching
 	if mechGet == 1 { // from Bolt
-		getFromBolt(orgIds)
-		getFromBolt(orgIds)
+
+		db, _ := openBolt()
+		defer db.Close()
+
+		getFromBolt(db, orgIds)
+		runtime.ReadMemStats(&midMemory)
+		getFromBolt(db, orgIds)
 	} else if mechGet == 2 || mechGet == 3 { // full map or List
 		getFromProto(orgIds)
+		runtime.ReadMemStats(&midMemory)
 		getFromProto(orgIds)
 	} else if mechGet == 4 { // sharded list
 
@@ -32,8 +48,13 @@ func main() {
 		orgShardedMap := &oMap
 		orgShardedMap = orgShardedMap.InitSMap()
 		getFromShardedProto(orgShardedMap, orgIds)
+		runtime.ReadMemStats(&midMemory)
 		getFromShardedProto(orgShardedMap, orgIds)
 	}
+	runtime.ReadMemStats(&endMemory)
+
+	fmt.Println("Total allocations after first pass and 2nd pass:",
+		(midMemory.TotalAlloc - startMemory.TotalAlloc), (endMemory.TotalAlloc - midMemory.TotalAlloc))
 }
 
 func getFromShardedProto(orgShardedMap *ReadShardedOrgMap, orgIds []string) {
@@ -114,16 +135,15 @@ func loadProtoFromList() {
 	}
 }
 
-func getFromBolt(orgIds []string) {
+func getFromBolt(db *bolt.DB, orgIds []string) {
 
 	st6 := time.Now()
-	bytesInDb := getAllObj(orgIds)
+	bytesInDb := getAllObj(db, orgIds)
 	st7 := time.Now()
 
 	for _, v := range bytesInDb {
 		orgRec := Organization{}
 		proto.Unmarshal(v, &orgRec)
-
 	}
 	st8 := time.Now()
 

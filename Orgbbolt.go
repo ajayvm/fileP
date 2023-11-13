@@ -86,13 +86,7 @@ func validateOrgs(orgs []*Organization) {
 	fmt.Println("Found stats for Industry ", orgF, ":err ", err)
 }
 
-func getAllObj(orgs []string) map[string][]byte {
-	db, shouldReturn := openBolt()
-	if shouldReturn {
-		return nil
-	}
-	defer db.Close()
-
+func getAllObj(db *bolt.DB, orgs []string) map[string][]byte {
 	foundCtr := 0
 	notFoundCtr := 0
 
