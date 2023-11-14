@@ -1,6 +1,5 @@
 *.pprof
 *.csv
-organization.pb.go
 trace.out
 *.zip
 datafiles
