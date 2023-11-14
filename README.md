@@ -1,12 +1,11 @@
 # fileP
 
 Project to read large CSV parse them, convert them to protobuf and then save them to bolt db 
-the csv file is the general datasets from https://www.datablist.com/learn/csv/download-sample-csv-files
+the csv file is the general datasets from https://www.datablist.com/learn/csv/download-sample-csv-files 
 
+For this POC, the organizations 100 and 2M record was used. https://github.com/datablist/sample-csv-files/raw/main/files/organizations/organizations-2000000.zip 
 
-in terms of bolt, current the program just saves 1 million key value pairs to bolt. there have been a few learnings, e.g. saving 10k at a time is most efficient. Refer Learnings.docx for more details and benchmarks for numbers 
-
-## Phase 1 - Trial runs 
+## Phase 1 (skip) - Trial runs 
 * experimenting incremental / batched population in bolt db 
 * go run .\Checkbbolt.go  
 
@@ -34,7 +33,8 @@ set the async processing flag to true if channel implementation required.
 * for only getting all values from the bolt given ids. 3 mechanisms are bolt, large slice, large map (1,2,3)
 * go run useOrgs.go orgMapping.go organization.pb.go Orgbbolt.go  ShardedOrgStore.go 
 
-Current work stopped at profiling of the memory and CPU utilization 
+Bolt based retrievals are very slow. Need investigation. even 2nd run is slow. 
+Current work stopped at performance and total allocations. Memory and CPU profiling can be done next.  
 
 ## Phase 4 - Replace Bolt by sharded Protobuf structures 
 * In this mechanism, the saving is done via lists that are sharded on key 
